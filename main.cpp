@@ -43,21 +43,21 @@ public:
     }
 
     parameters(int argc, char const* argv[]) {
+        using address_t = std::decay_t<decltype(address)>;
+        using value_t = std::decay_t<decltype(value)>;
+
         constexpr static int address_pos{1};
         constexpr static int value_pos{2};
 
         switch (argc) {
             case 2:
                 action = action::read;
-                address = reinterpret_cast<std::decay_t<decltype(address)>>(std::stoull(argv[address_pos],
-                                                                                        nullptr, 0));
+                address = reinterpret_cast<address_t>(get_int_type_from_str<std::size_t>(argv[address_pos]));
                 break;
             case 3:
                 action = action::write;
-                address = reinterpret_cast<std::decay_t<decltype(address)>>(std::stoull(argv[address_pos],
-                                                                                        nullptr, 0));
-                value = static_cast<std::decay_t<decltype(value)>>(std::stoull(argv[value_pos],
-                                                                               nullptr, 0));
+                address = reinterpret_cast<address_t>(get_int_type_from_str<std::size_t>(argv[address_pos]));
+                value = get_int_type_from_str<value_t>(argv[value_pos]);
                 break;
             default:
                 action = action::show_help;
@@ -66,6 +66,20 @@ public:
     }
 
 private:
+    template<typename T = unsigned long long>
+    static T get_int_type_from_str(char const* line)
+    requires (std::is_convertible_v<decltype(std::stoull(line, nullptr, 0)), T>) {
+            try {
+                // std::stoull returns not a pretty message in case of exception.
+                // that's why there is a try{} catch{}  block.
+                return static_cast<T>(std::stoull(line, nullptr, 0));
+            } catch (std::invalid_argument const&) {
+                throw std::invalid_argument{"Invalid argument"};
+            } catch (std::out_of_range const&) {
+                throw std::out_of_range{"Value is out of range"};
+            }
+    }
+
     value_type *address{nullptr};
     value_type value;
     action action;
