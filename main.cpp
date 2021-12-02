@@ -25,7 +25,8 @@ public:
             program_name + " - reads/writes to /dev/mem\n"s
             "Usage:\n"
             + " " + program_name + " <ADDRESS>        \t\tread unsigned 32-bits value from address and print output in hex base.\n"
-            + " " + program_name + " <ADDRESS> <VALUE>\t\twrite unsigned 32-bits value to address."
+            + " " + program_name + " <ADDRESS> <VALUE>\t\twrite unsigned 32-bits value to address.\n"
+            + "<ADDRESS> and <VALUE> can be in hex (0x42), octet (042) or decimal (42) base"
         };
 
         return help;
