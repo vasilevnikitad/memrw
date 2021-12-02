@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 
@@ -69,15 +70,28 @@ private:
     template<typename T = unsigned long long>
     static T get_int_type_from_str(char const* line)
     requires (std::is_convertible_v<decltype(std::stoull(line, nullptr, 0)), T>) {
-            try {
-                // std::stoull returns not a pretty message in case of exception.
-                // that's why there is a try{} catch{}  block.
-                return static_cast<T>(std::stoull(line, nullptr, 0));
-            } catch (std::invalid_argument const&) {
+        try {
+            // std::stoull returns not a pretty message in case of exception.
+            // that's why there is a try{} catch{}  block.
+
+            std::size_t pos;
+            T out{static_cast<T>(std::stoull(line, &pos, 0))};
+
+            if (auto c{line[pos]}; c && !std::isspace(c)) {
                 throw std::invalid_argument{"Invalid argument"};
-            } catch (std::out_of_range const&) {
-                throw std::out_of_range{"Value is out of range"};
             }
+
+            if (std::numeric_limits<T>::max() < out ||
+                std::numeric_limits<T>::min() > out) {
+                throw std::invalid_argument{"Invalid argument"};
+            }
+
+            return out;
+        } catch (std::invalid_argument const&) {
+            throw std::invalid_argument{"Invalid argument"};
+        } catch (std::out_of_range const&) {
+            throw std::out_of_range{"Value is out of range"};
+        }
     }
 
     value_type *address{nullptr};
